@@ -25,11 +25,11 @@ export function analyze(input: AnalysisInput): Rule[] {
 
   return knowledgeBase.filter((r) => {
     if (!r.applies_to.includes(input.buildingType)) return false;
-    if (r.validation_logic?.conditions?.some((c) => c.includes("area"))) {
-      const m = c => /area\s*>\s*(\d+)/.exec(c);
-      const cond = r.validation_logic.conditions.map(m).find(Boolean);
-      if (cond && input.area !== undefined) {
-        const min = parseInt(cond[1], 10);
+    const conds = r.validation_logic?.conditions;
+    if (conds && conds.some((c) => c.includes("area"))) {
+      const match = conds.map((c) => /area\s*>\s*(\d+)/.exec(c)).find(Boolean);
+      if (match && input.area !== undefined) {
+        const min = parseInt(match[1], 10);
         if (input.area <= min && !boosted.has(r.id)) return false;
       }
     }
