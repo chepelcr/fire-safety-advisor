@@ -85,4 +85,4 @@ export const t = {
   },
 } as const;
 
-export type Dict = typeof t.es;
+export type Dict = (typeof t)["es"] | (typeof t)["en"];
