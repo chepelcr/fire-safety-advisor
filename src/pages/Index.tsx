@@ -7,10 +7,25 @@ import { ChatPanel } from "@/components/ChatPanel";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/contexts/LangContext";
-import { fireCodeApi, BuildingType } from "@/services/fireCodeApi";
+import { fireCodeApi, BuildingType, RuleCategory } from "@/services/fireCodeApi";
+import { cn } from "@/lib/utils";
 import { Printer, ShieldAlert, ListChecks, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
 
 const PAGE_SIZE = 20;
+
+const CAT_CSS: Record<string, string> = {
+  iniciacion:    "initiation",
+  notificacion:  "notification",
+  monitoreo:     "monitoring",
+  accionamiento: "actuation",
+};
+
+const CATEGORY_TABS: { type: string; value: RuleCategory }[] = [
+  { type: "iniciacion",    value: RuleCategory.iniciacion },
+  { type: "notificacion",  value: RuleCategory.notificacion },
+  { type: "monitoreo",     value: RuleCategory.monitoreo },
+  { type: "accionamiento", value: RuleCategory.accionamiento },
+];
 
 const Index = () => {
   const { tr, lang } = useLang();
@@ -23,11 +38,12 @@ const Index = () => {
   const [ceilingHeight, setCeilingHeight] = useState<number>(0);
   const [volume, setVolume] = useState<number>(0);
   const [page, setPage] = useState<number>(0);
+  const [selectedCategory, setSelectedCategory] = useState<RuleCategory | null>(null);
 
   const filters = { building, area, context, floors, occupants, ceilingHeight, volume };
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["rules", filters, page],
+    queryKey: ["rules", filters, page, selectedCategory],
     queryFn: () =>
       fireCodeApi.getRules({
         building_type: building || undefined,
@@ -37,6 +53,7 @@ const Index = () => {
         occupants: occupants || undefined,
         ceiling_height_m: ceilingHeight || undefined,
         volume_m3: volume || undefined,
+        category: selectedCategory ?? undefined,
         page,
         page_size: PAGE_SIZE,
       }),
@@ -57,112 +74,154 @@ const Index = () => {
     setPage(0);
   };
 
+  const selectCategory = (cat: RuleCategory | null) => {
+    setSelectedCategory(cat);
+    setPage(0);
+  };
+
   return (
-    <div className="min-h-screen scanline">
+    <div className="flex flex-col h-screen overflow-hidden scanline">
       <Header />
-      <main className="container py-8 space-y-8">
-        {/* Hero */}
-        <section className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2 space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-              <ShieldAlert className="h-3.5 w-3.5" /> NFPA · Costa Rica
-            </div>
-            <h1 className="text-3xl font-bold leading-tight sm:text-4xl">
-              {lang === "es" ? (
-                <>Interprete normas <span className="text-primary">NFPA</span> en lenguaje práctico.</>
-              ) : (
-                <>Interpret <span className="text-primary">NFPA</span> standards in practical language.</>
+
+      <main className="container flex-1 min-h-0 py-4 flex flex-col gap-4 overflow-hidden">
+        <div className="flex-1 min-h-0 grid gap-6 lg:grid-cols-3">
+
+          {/* ── Left column: title + filters + rules ── */}
+          <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
+
+            {/* Hero: title left, selector right */}
+            <section className="grid gap-4 lg:grid-cols-2">
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                  <ShieldAlert className="h-3.5 w-3.5" /> NFPA · Costa Rica
+                </div>
+                <h1 className="text-2xl font-bold leading-tight sm:text-3xl">
+                  {lang === "es" ? (
+                    <>Interprete normas <span className="text-primary">NFPA</span> en lenguaje práctico.</>
+                  ) : (
+                    <>Interpret <span className="text-primary">NFPA</span> standards in practical language.</>
+                  )}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {lang === "es"
+                    ? "Seleccione el tipo de edificio, ingrese el uso y obtenga los sistemas requeridos clasificados por categoría."
+                    : "Select the building type, enter the occupancy and get required systems classified by category."}
+                </p>
+              </div>
+
+              <BuildingSelector
+                value={building} onChange={handleFilterChange(setBuilding)}
+                area={area} onAreaChange={handleFilterChange(setArea)}
+                context={context} onContextChange={handleFilterChange(setContext)}
+                floors={floors} onFloorsChange={handleFilterChange(setFloors)}
+                occupants={occupants} onOccupantsChange={handleFilterChange(setOccupants)}
+                ceilingHeight={ceilingHeight} onCeilingHeightChange={handleFilterChange(setCeilingHeight)}
+                volume={volume} onVolumeChange={handleFilterChange(setVolume)}
+              />
+            </section>
+
+            {/* Stats + category filter buttons */}
+            <section className="flex flex-wrap items-center justify-between gap-3 panel px-5 py-3">
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <div className="flex items-center gap-2 mr-1">
+                  <ListChecks className="h-4 w-4 text-accent" />
+                  <span className="text-muted-foreground">Total:</span>
+                  <span className="font-semibold">{isLoading ? "—" : totalRules}</span>
+                </div>
+                <div className="flex items-center gap-2 mr-2">
+                  <ShieldAlert className="h-4 w-4 text-[hsl(var(--risk-high))]" />
+                  <span className="text-muted-foreground">{lang === "es" ? "Riesgo alto" : "High risk"}:</span>
+                  <span className="font-semibold text-[hsl(var(--risk-high))]">{isLoading ? "—" : highRisk}</span>
+                </div>
+
+                <div className="h-4 w-px bg-border hidden sm:block mx-1" />
+
+                {/* "Todas / All" clears the filter */}
+                <button
+                  onClick={() => selectCategory(null)}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-xs transition-colors",
+                    selectedCategory === null
+                      ? "border-primary/60 bg-primary/10 text-primary font-semibold"
+                      : "border-border text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                  )}
+                >
+                  {lang === "es" ? "Todas" : "All"}
+                </button>
+
+                {CATEGORY_TABS.map(({ type, value }) => {
+                  const group = ruleGroups.find((g) => g.type === type);
+                  const isActive = selectedCategory === value;
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => selectCategory(value)}
+                      className={cn(
+                        "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
+                        isActive
+                          ? "border-primary/60 bg-primary/10 text-primary font-semibold"
+                          : "border-border text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
+                      )}
+                    >
+                      <span
+                        className="h-2 w-2 rounded-full shrink-0"
+                        style={{ backgroundColor: `hsl(var(--cat-${CAT_CSS[type] ?? "initiation"}))` }}
+                      />
+                      {tr[type as keyof typeof tr]}
+                      {group && (
+                        <span className={cn("font-semibold", isActive ? "text-primary" : "")}>
+                          {group.quantity}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <Button onClick={() => window.print()} variant="outline" size="sm" className="no-print gap-2 shrink-0">
+                <Printer className="h-4 w-4" /> {tr.print}
+              </Button>
+            </section>
+
+            {/* Rules list — independently scrollable */}
+            <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
+              {isError && (
+                <div className="flex items-center gap-3 rounded-md border border-[hsl(var(--risk-high)/0.4)] bg-[hsl(var(--risk-high)/0.1)] p-4 text-sm text-[hsl(var(--risk-high))]">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  {lang === "es"
+                    ? "Error al cargar las normas. Verifique su conexión e intente de nuevo."
+                    : "Error loading standards. Check your connection and try again."}
+                </div>
               )}
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground">
-              {lang === "es"
-                ? "Seleccione el tipo de edificio, ingrese el uso y obtenga los sistemas requeridos clasificados en iniciación, notificación, monitoreo y accionamiento."
-                : "Select the building type, enter the occupancy and get required systems classified into initiation, notification, monitoring and actuation."}
-            </p>
-          </div>
-          <BuildingSelector
-            value={building} onChange={handleFilterChange(setBuilding)}
-            area={area} onAreaChange={handleFilterChange(setArea)}
-            context={context} onContextChange={handleFilterChange(setContext)}
-            floors={floors} onFloorsChange={handleFilterChange(setFloors)}
-            occupants={occupants} onOccupantsChange={handleFilterChange(setOccupants)}
-            ceilingHeight={ceilingHeight} onCeilingHeightChange={handleFilterChange(setCeilingHeight)}
-            volume={volume} onVolumeChange={handleFilterChange(setVolume)}
-          />
-        </section>
 
-        {/* Stats */}
-        <section className="flex flex-wrap items-center justify-between gap-4 panel px-5 py-4">
-          <div className="flex flex-wrap items-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <ListChecks className="h-4 w-4 text-accent" />
-              <span className="text-muted-foreground">Total:</span>
-              <span className="font-semibold">{isLoading ? "—" : totalRules}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="h-4 w-4 text-[hsl(var(--risk-high))]" />
-              <span className="text-muted-foreground">{lang === "es" ? "Riesgo alto" : "High risk"}:</span>
-              <span className="font-semibold text-[hsl(var(--risk-high))]">{isLoading ? "—" : highRisk}</span>
-            </div>
-            {ruleGroups.map((g) => (
-              <div key={g.type} className="hidden sm:flex items-center gap-2">
-                <span
-                  className={`h-2 w-2 rounded-full bg-[hsl(var(--cat-${
-                    g.type === "iniciacion" ? "initiation"
-                    : g.type === "notificacion" ? "notification"
-                    : g.type === "monitoreo" ? "monitoring"
-                    : "actuation"
-                  }))]`}
-                />
-                <span className="text-xs text-muted-foreground">{tr[g.type as keyof typeof tr]}</span>
-                <span className="text-xs font-semibold">{g.quantity}</span>
-              </div>
-            ))}
-          </div>
-          <Button onClick={() => window.print()} variant="outline" className="no-print gap-2">
-            <Printer className="h-4 w-4" /> {tr.print}
-          </Button>
-        </section>
-
-        {/* Results + chat */}
-        <section className="grid gap-6 lg:grid-cols-3">
-          <div className="space-y-5 lg:col-span-2">
-            {isError && (
-              <div className="flex items-center gap-3 rounded-md border border-[hsl(var(--risk-high)/0.4)] bg-[hsl(var(--risk-high)/0.1)] p-4 text-sm text-[hsl(var(--risk-high))]">
-                <AlertTriangle className="h-4 w-4 shrink-0" />
-                {lang === "es"
-                  ? "Error al cargar las normas. Verifique su conexión e intente de nuevo."
-                  : "Error loading standards. Check your connection and try again."}
-              </div>
-            )}
-
-            {isLoading ? (
-              <>
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="panel overflow-hidden">
-                    <div className="px-4 py-3 border-b border-border">
-                      <Skeleton className="h-5 w-32" />
+              {isLoading ? (
+                <>
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="panel overflow-hidden">
+                      <div className="px-4 py-3 border-b border-border">
+                        <Skeleton className="h-5 w-32" />
+                      </div>
+                      <div className="divide-y divide-border">
+                        {[1, 2, 3].map((j) => (
+                          <div key={j} className="px-4 py-3 space-y-2">
+                            <Skeleton className="h-4 w-48" />
+                            <Skeleton className="h-3 w-full" />
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="divide-y divide-border">
-                      {[1, 2, 3].map((j) => (
-                        <div key={j} className="px-4 py-3 space-y-2">
-                          <Skeleton className="h-4 w-48" />
-                          <Skeleton className="h-3 w-full" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </>
-            ) : (
-              ruleGroups.map((group) => (
-                <CategoryCard key={group.type} group={group} />
-              ))
-            )}
+                  ))}
+                </>
+              ) : (
+                ruleGroups.map((group) => (
+                  <CategoryCard key={group.type} group={group} />
+                ))
+              )}
+            </div>
 
-            {/* Pagination */}
+            {/* Pagination — pinned below the scroll area */}
             {pagination && pagination.totalPages > 1 && (
-              <div className="flex items-center justify-between panel px-4 py-3">
+              <div className="flex items-center justify-between panel px-4 py-3 shrink-0">
                 <span className="text-xs text-muted-foreground">
                   {lang === "es"
                     ? `Página ${pagination.page + 1} de ${pagination.totalPages} — ${pagination.totalElements} normas`
@@ -170,9 +229,7 @@ const Index = () => {
                 </span>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-7 w-7"
+                    variant="outline" size="icon" className="h-7 w-7"
                     disabled={pagination.page === 0 || isLoading}
                     onClick={() => setPage((p) => Math.max(0, p - 1))}
                   >
@@ -182,9 +239,7 @@ const Index = () => {
                     {pagination.page + 1}
                   </span>
                   <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-7 w-7"
+                    variant="outline" size="icon" className="h-7 w-7"
                     disabled={pagination.page >= pagination.totalPages - 1 || isLoading}
                     onClick={() => setPage((p) => p + 1)}
                   >
@@ -195,7 +250,8 @@ const Index = () => {
             )}
           </div>
 
-          <div className="no-print">
+          {/* ── Right column: chat — full column height, no outer scroll ── */}
+          <div className="no-print flex flex-col min-h-0">
             <ChatPanel
               buildingType={building}
               usage={context}
@@ -206,9 +262,9 @@ const Index = () => {
               volume={volume || undefined}
             />
           </div>
-        </section>
+        </div>
 
-        <footer className="pt-4 text-center text-xs text-muted-foreground">
+        <footer className="shrink-0 pt-2 text-center text-xs text-muted-foreground no-print">
           {tr.disclaimer}
         </footer>
       </main>

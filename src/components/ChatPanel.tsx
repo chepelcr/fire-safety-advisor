@@ -85,7 +85,7 @@ export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceil
   };
 
   return (
-    <div className="panel flex h-[640px] flex-col">
+    <div className="panel flex h-full flex-col">
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         <Sparkles className="h-4 w-4 text-primary" />
         <div className="text-sm font-semibold">{tr.assistant}</div>
