@@ -78,7 +78,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     background: var(--gradient-hero);
-    background-attachment: fixed;
+    background-attachment: scroll;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }

@@ -286,19 +286,27 @@ const Index = () => {
         </footer>
       </main>
 
-      {/* ── Mobile chat modal — full screen overlay, lg:hidden ── */}
+      {/* ── Mobile chat modal, lg:hidden ── */}
       {chatOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background lg:hidden">
-          <ChatPanel
-            buildingType={building}
-            usage={context}
-            areaM2={area         || undefined}
-            floors={floors       || undefined}
-            occupants={occupants || undefined}
-            ceilingHeight={ceilingHeight || undefined}
-            volume={volume       || undefined}
-            onClose={() => setChatOpen(false)}
+        <div className="lg:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            onClick={() => setChatOpen(false)}
           />
+          {/* Modal */}
+          <div className="fixed inset-x-3 top-16 bottom-6 z-50 flex flex-col rounded-xl overflow-hidden shadow-2xl border border-border">
+            <ChatPanel
+              buildingType={building}
+              usage={context}
+              areaM2={area         || undefined}
+              floors={floors       || undefined}
+              occupants={occupants || undefined}
+              ceilingHeight={ceilingHeight || undefined}
+              volume={volume       || undefined}
+              onClose={() => setChatOpen(false)}
+            />
+          </div>
         </div>
       )}
     </div>
