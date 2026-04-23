@@ -2,7 +2,7 @@ export type Lang = "es" | "en";
 
 export const t = {
   es: {
-    appName: "FireCode CR",
+    appName: "FireCode",
     tagline: "Asistente NFPA para Costa Rica",
     dashboard: "Panel",
     assistant: "Asistente IA",
@@ -47,7 +47,7 @@ export const t = {
     items: "elementos",
   },
   en: {
-    appName: "FireCode CR",
+    appName: "FireCode",
     tagline: "NFPA Assistant for Costa Rica",
     dashboard: "Dashboard",
     assistant: "AI Assistant",
