@@ -3,11 +3,11 @@ import { Send, Sparkles, AlertTriangle, BookOpen, MapPin, Loader2 } from "lucide
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/contexts/LangContext";
-import { fireCodeApi, type EvaluateResponse } from "@/services/fireCodeApi";
+import { fireCodeApi, BuildingType, type EvaluateResponse } from "@/services/fireCodeApi";
 import { cn } from "@/lib/utils";
 
 interface Props {
-  buildingType: string;
+  buildingType: BuildingType;
   usage: string;
   areaM2?: number;
   floors?: number;
@@ -46,7 +46,7 @@ export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceil
 
     try {
       const result = await fireCodeApi.evaluate({
-        building_type: buildingType || "comercial",
+        building_type: buildingType || BuildingType.comercial,
         usage: usage || text,
         user_query: text,
         area_m2: areaM2 || undefined,

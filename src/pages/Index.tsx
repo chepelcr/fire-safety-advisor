@@ -7,13 +7,13 @@ import { ChatPanel } from "@/components/ChatPanel";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/contexts/LangContext";
-import { fireCodeApi, type BuildingType } from "@/services/fireCodeApi";
+import { fireCodeApi, BuildingType } from "@/services/fireCodeApi";
 import { Printer, ShieldAlert, ListChecks, AlertTriangle } from "lucide-react";
 
 const Index = () => {
   const { tr, lang } = useLang();
 
-  const [building, setBuilding] = useState<BuildingType>("comercial");
+  const [building, setBuilding] = useState<BuildingType>(BuildingType.comercial);
   const [area, setArea] = useState<number>(0);
   const [context, setContext] = useState<string>("");
   const [floors, setFloors] = useState<number>(0);

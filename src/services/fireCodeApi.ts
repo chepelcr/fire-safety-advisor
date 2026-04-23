@@ -43,11 +43,22 @@ export interface RuleGroupDTO {
   rules: RuleDTO[];
 }
 
-export type BuildingType = "residencial" | "comercial" | "industrial";
+export enum BuildingType {
+  residencial = 1,
+  comercial   = 2,
+  industrial  = 3,
+}
+
+export enum RuleCategory {
+  iniciacion    = 1,
+  notificacion  = 2,
+  monitoreo     = 3,
+  accionamiento = 4,
+}
 
 export interface GetRulesParams {
-  building_type?: string;
-  category?: string;
+  building_type?: BuildingType;
+  category?: RuleCategory;
   usage?: string;
   area_m2?: number;
   floors?: number;
@@ -58,7 +69,7 @@ export interface GetRulesParams {
 }
 
 export interface EvaluateRequest {
-  building_type: string;
+  building_type: BuildingType;
   usage: string;
   user_query: string;
   area_m2?: number;
@@ -66,7 +77,7 @@ export interface EvaluateRequest {
   occupants?: number;
   ceiling_height_m?: number;
   volume_m3?: number;
-  category?: string;
+  category?: RuleCategory;
   standard?: string;
 }
 

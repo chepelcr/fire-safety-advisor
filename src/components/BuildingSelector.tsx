@@ -1,6 +1,6 @@
 import { Building2, Factory, Home } from "lucide-react";
 import { useLang } from "@/contexts/LangContext";
-import type { BuildingType } from "@/services/fireCodeApi";
+import { BuildingType } from "@/services/fireCodeApi";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,9 +33,9 @@ export function BuildingSelector({
 }: Props) {
   const { tr } = useLang();
   const types: { id: BuildingType; icon: typeof Home; label: string }[] = [
-    { id: "residencial", icon: Home, label: tr.residencial },
-    { id: "comercial", icon: Building2, label: tr.comercial },
-    { id: "industrial", icon: Factory, label: tr.industrial },
+    { id: BuildingType.residencial, icon: Home,      label: tr.residencial },
+    { id: BuildingType.comercial,   icon: Building2, label: tr.comercial   },
+    { id: BuildingType.industrial,  icon: Factory,   label: tr.industrial  },
   ];
 
   return (
