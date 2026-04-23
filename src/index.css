@@ -102,6 +102,28 @@
   .scanline {
     background-image: repeating-linear-gradient(0deg, hsl(0 0% 100% / 0.015) 0 1px, transparent 1px 3px);
   }
+  /* Custom scrollbar — webkit (Chrome, Edge, Safari) */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary) / 0.6);
+  }
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) hsl(var(--background));
+  }
+
   @media print {
     body { background: white !important; color: black !important; }
     .no-print { display: none !important; }
