@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/contexts/LangContext";
 import { fireCodeApi, BuildingType, RuleCategory } from "@/services/fireCodeApi";
+import { type Msg } from "@/components/ChatPanel";
 import { cn } from "@/lib/utils";
 import { Printer, ShieldAlert, ListChecks, AlertTriangle, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
@@ -40,6 +41,7 @@ const Index = () => {
   const [page, setPage]                 = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<RuleCategory | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Msg[]>([]);
 
   useEffect(() => {
     document.body.style.overflow = chatOpen ? "hidden" : "";
@@ -282,6 +284,9 @@ const Index = () => {
               occupants={occupants || undefined}
               ceilingHeight={ceilingHeight || undefined}
               volume={volume       || undefined}
+              messages={chatMessages}
+              setMessages={setChatMessages}
+              onClose={() => setChatOpen(false)}
             />
           </div>
         </div>

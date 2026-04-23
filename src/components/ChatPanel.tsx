@@ -6,6 +6,12 @@ import { useLang } from "@/contexts/LangContext";
 import { fireCodeApi, BuildingType, type EvaluateResponse } from "@/services/fireCodeApi";
 import { cn } from "@/lib/utils";
 
+export interface Msg {
+  role: "user" | "assistant";
+  text: string;
+  answer?: EvaluateResponse;
+}
+
 interface Props {
   buildingType: BuildingType;
   usage: string;
@@ -15,19 +21,13 @@ interface Props {
   ceilingHeight?: number;
   volume?: number;
   onClose?: () => void;
+  messages: Msg[];
+  setMessages: React.Dispatch<React.SetStateAction<Msg[]>>;
 }
 
-interface Msg {
-  role: "user" | "assistant";
-  text: string;
-  answer?: EvaluateResponse;
-  loading?: boolean;
-}
-
-export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceilingHeight, volume, onClose }: Props) {
+export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceilingHeight, volume, onClose, messages, setMessages }: Props) {
   const { lang, tr } = useLang();
   const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Msg[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
