@@ -30,14 +30,14 @@ const CATEGORY_TABS: { type: string; value: RuleCategory }[] = [
 const Index = () => {
   const { tr, lang } = useLang();
 
-  const [building, setBuilding] = useState<BuildingType>(BuildingType.comercial);
-  const [area, setArea] = useState<number>(0);
-  const [context, setContext] = useState<string>("");
-  const [floors, setFloors] = useState<number>(0);
-  const [occupants, setOccupants] = useState<number>(0);
+  const [building, setBuilding]         = useState<BuildingType>(BuildingType.comercial);
+  const [area, setArea]                 = useState<number>(0);
+  const [context, setContext]           = useState<string>("");
+  const [floors, setFloors]             = useState<number>(0);
+  const [occupants, setOccupants]       = useState<number>(0);
   const [ceilingHeight, setCeilingHeight] = useState<number>(0);
-  const [volume, setVolume] = useState<number>(0);
-  const [page, setPage] = useState<number>(0);
+  const [volume, setVolume]             = useState<number>(0);
+  const [page, setPage]                 = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<RuleCategory | null>(null);
 
   const filters = { building, area, context, floors, occupants, ceilingHeight, volume };
@@ -46,27 +46,25 @@ const Index = () => {
     queryKey: ["rules", filters, page, selectedCategory],
     queryFn: () =>
       fireCodeApi.getRules({
-        building_type: building || undefined,
-        area_m2: area || undefined,
-        usage: context || undefined,
-        floors: floors || undefined,
-        occupants: occupants || undefined,
+        building_type:    building   || undefined,
+        area_m2:          area       || undefined,
+        usage:            context    || undefined,
+        floors:           floors     || undefined,
+        occupants:        occupants  || undefined,
         ceiling_height_m: ceilingHeight || undefined,
-        volume_m3: volume || undefined,
-        category: selectedCategory ?? undefined,
+        volume_m3:        volume     || undefined,
+        category:         selectedCategory ?? undefined,
         page,
         page_size: PAGE_SIZE,
       }),
     staleTime: 30_000,
   });
 
-  const ruleGroups = data?.data ?? [];
-  const pagination = data?.pagination;
-
-  const totalRules = pagination?.totalElements ?? 0;
-  const highRisk = ruleGroups.reduce(
-    (acc, g) => acc + g.rules.filter((r) => r.risk.level === "alto").length,
-    0
+  const ruleGroups  = data?.data ?? [];
+  const pagination  = data?.pagination;
+  const totalRules  = pagination?.totalElements ?? 0;
+  const highRisk    = ruleGroups.reduce(
+    (acc, g) => acc + g.rules.filter((r) => r.risk.level === "alto").length, 0
   );
 
   const handleFilterChange = <T,>(setter: (v: T) => void) => (v: T) => {
@@ -80,61 +78,65 @@ const Index = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden scanline">
+    /* Outer: natural scroll on mobile, viewport-locked on desktop */
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col scanline">
       <Header />
 
-      <main className="container flex-1 min-h-0 py-4 flex flex-col gap-4 overflow-hidden">
-        <div className="flex-1 min-h-0 grid gap-6 lg:grid-cols-3">
+      {/*
+        Mobile:  flex-col, everything stacks, page scrolls normally.
+        Desktop: flex-row, left col scrolls independently, right col (chat) is pinned.
+      */}
+      <main className="container flex-1 min-h-0 py-4 px-4 flex flex-col gap-4 lg:overflow-hidden">
+        <div className="flex flex-col gap-4 lg:flex-row lg:flex-1 lg:min-h-0">
 
-          {/* ── Left column: title + filters + rules ── */}
-          <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
+          {/* ── LEFT COLUMN ── */}
+          <div className="flex flex-col gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden">
 
-            {/* Hero: title left, selector right */}
-            <section className="grid gap-4 lg:grid-cols-2">
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-                  <ShieldAlert className="h-3.5 w-3.5" /> NFPA · Costa Rica
-                </div>
-                <h1 className="text-2xl font-bold leading-tight sm:text-3xl">
-                  {lang === "es" ? (
-                    <>Interprete normas <span className="text-primary">NFPA</span> en lenguaje práctico.</>
-                  ) : (
-                    <>Interpret <span className="text-primary">NFPA</span> standards in practical language.</>
-                  )}
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  {lang === "es"
-                    ? "Seleccione el tipo de edificio, ingrese el uso y obtenga los sistemas requeridos clasificados por categoría."
-                    : "Select the building type, enter the occupancy and get required systems classified by category."}
-                </p>
+            {/* Title + badge */}
+            <section className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                <ShieldAlert className="h-3.5 w-3.5" /> NFPA · Costa Rica
               </div>
-
-              <BuildingSelector
-                value={building} onChange={handleFilterChange(setBuilding)}
-                area={area} onAreaChange={handleFilterChange(setArea)}
-                context={context} onContextChange={handleFilterChange(setContext)}
-                floors={floors} onFloorsChange={handleFilterChange(setFloors)}
-                occupants={occupants} onOccupantsChange={handleFilterChange(setOccupants)}
-                ceilingHeight={ceilingHeight} onCeilingHeightChange={handleFilterChange(setCeilingHeight)}
-                volume={volume} onVolumeChange={handleFilterChange(setVolume)}
-              />
+              <h1 className="text-2xl font-bold leading-tight sm:text-3xl">
+                {lang === "es" ? (
+                  <>Interprete normas <span className="text-primary">NFPA</span> en lenguaje práctico.</>
+                ) : (
+                  <>Interpret <span className="text-primary">NFPA</span> standards in practical language.</>
+                )}
+              </h1>
+              <p className="text-sm text-muted-foreground max-w-xl">
+                {lang === "es"
+                  ? "Seleccione el tipo de edificio, ingrese el uso y obtenga los sistemas requeridos clasificados por categoría."
+                  : "Select the building type, enter the occupancy and get required systems classified by category."}
+              </p>
             </section>
 
-            {/* Stats + category filter buttons */}
-            <section className="flex flex-wrap items-center justify-between gap-3 panel px-5 py-3">
+            {/* Filters */}
+            <BuildingSelector
+              value={building}      onChange={handleFilterChange(setBuilding)}
+              area={area}           onAreaChange={handleFilterChange(setArea)}
+              context={context}     onContextChange={handleFilterChange(setContext)}
+              floors={floors}       onFloorsChange={handleFilterChange(setFloors)}
+              occupants={occupants} onOccupantsChange={handleFilterChange(setOccupants)}
+              ceilingHeight={ceilingHeight} onCeilingHeightChange={handleFilterChange(setCeilingHeight)}
+              volume={volume}       onVolumeChange={handleFilterChange(setVolume)}
+            />
+
+            {/* Stats + category filter */}
+            <section className="flex flex-wrap items-center justify-between gap-3 panel px-4 py-3">
               <div className="flex flex-wrap items-center gap-2 text-sm">
-                <div className="flex items-center gap-2 mr-1">
+                <div className="flex items-center gap-1.5">
                   <ListChecks className="h-4 w-4 text-accent" />
                   <span className="text-muted-foreground">Total:</span>
                   <span className="font-semibold">{isLoading ? "—" : totalRules}</span>
                 </div>
-                <div className="flex items-center gap-2 mr-2">
+                <div className="flex items-center gap-1.5">
                   <ShieldAlert className="h-4 w-4 text-[hsl(var(--risk-high))]" />
                   <span className="text-muted-foreground">{lang === "es" ? "Riesgo alto" : "High risk"}:</span>
                   <span className="font-semibold text-[hsl(var(--risk-high))]">{isLoading ? "—" : highRisk}</span>
                 </div>
 
-                <div className="h-4 w-px bg-border hidden sm:block mx-1" />
+                <div className="h-4 w-px bg-border mx-1" />
 
                 {/* "Todas / All" clears the filter */}
                 <button
@@ -150,7 +152,7 @@ const Index = () => {
                 </button>
 
                 {CATEGORY_TABS.map(({ type, value }) => {
-                  const group = ruleGroups.find((g) => g.type === type);
+                  const group    = ruleGroups.find((g) => g.type === type);
                   const isActive = selectedCategory === value;
                   return (
                     <button
@@ -183,8 +185,12 @@ const Index = () => {
               </Button>
             </section>
 
-            {/* Rules list — independently scrollable */}
-            <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
+            {/*
+              Rules list:
+              - Mobile:  natural height, page scrolls
+              - Desktop: flex-1 + overflow-y-auto → only this div scrolls
+            */}
+            <div className="space-y-4 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
               {isError && (
                 <div className="flex items-center gap-3 rounded-md border border-[hsl(var(--risk-high)/0.4)] bg-[hsl(var(--risk-high)/0.1)] p-4 text-sm text-[hsl(var(--risk-high))]">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -195,23 +201,21 @@ const Index = () => {
               )}
 
               {isLoading ? (
-                <>
-                  {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="panel overflow-hidden">
-                      <div className="px-4 py-3 border-b border-border">
-                        <Skeleton className="h-5 w-32" />
-                      </div>
-                      <div className="divide-y divide-border">
-                        {[1, 2, 3].map((j) => (
-                          <div key={j} className="px-4 py-3 space-y-2">
-                            <Skeleton className="h-4 w-48" />
-                            <Skeleton className="h-3 w-full" />
-                          </div>
-                        ))}
-                      </div>
+                [1, 2, 3, 4].map((i) => (
+                  <div key={i} className="panel overflow-hidden">
+                    <div className="px-4 py-3 border-b border-border">
+                      <Skeleton className="h-5 w-32" />
                     </div>
-                  ))}
-                </>
+                    <div className="divide-y divide-border">
+                      {[1, 2, 3].map((j) => (
+                        <div key={j} className="px-4 py-3 space-y-2">
+                          <Skeleton className="h-4 w-48" />
+                          <Skeleton className="h-3 w-full" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
               ) : (
                 ruleGroups.map((group) => (
                   <CategoryCard key={group.type} group={group} />
@@ -219,7 +223,7 @@ const Index = () => {
               )}
             </div>
 
-            {/* Pagination — pinned below the scroll area */}
+            {/* Pagination — stays below the scroll area */}
             {pagination && pagination.totalPages > 1 && (
               <div className="flex items-center justify-between panel px-4 py-3 shrink-0">
                 <span className="text-xs text-muted-foreground">
@@ -250,21 +254,24 @@ const Index = () => {
             )}
           </div>
 
-          {/* ── Right column: chat — full column height, no outer scroll ── */}
-          <div className="no-print flex flex-col min-h-0">
+          {/* ── RIGHT COLUMN: chat ──
+              Mobile:  natural height (500px), part of page scroll
+              Desktop: flex-col + min-h-0, fills column height, only messages scroll inside
+          */}
+          <div className="no-print lg:w-[360px] lg:shrink-0 lg:flex lg:flex-col lg:min-h-0">
             <ChatPanel
               buildingType={building}
               usage={context}
-              areaM2={area || undefined}
-              floors={floors || undefined}
+              areaM2={area       || undefined}
+              floors={floors     || undefined}
               occupants={occupants || undefined}
               ceilingHeight={ceilingHeight || undefined}
-              volume={volume || undefined}
+              volume={volume     || undefined}
             />
           </div>
         </div>
 
-        <footer className="shrink-0 pt-2 text-center text-xs text-muted-foreground no-print">
+        <footer className="shrink-0 pt-2 pb-1 text-center text-xs text-muted-foreground no-print">
           {tr.disclaimer}
         </footer>
       </main>
