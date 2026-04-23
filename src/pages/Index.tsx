@@ -80,7 +80,7 @@ const Index = () => {
 
   return (
     /* Outer: natural scroll on mobile, viewport-locked on desktop */
-    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col scanline">
+    <div className="flex flex-col scanline" style={{ minHeight: "100dvh" }}>
       <Header
         chatButton={
           <Button
@@ -99,11 +99,11 @@ const Index = () => {
         Mobile:  flex-col, everything stacks, page scrolls normally.
         Desktop: flex-row, left col scrolls independently, right col (chat) is pinned.
       */}
-      <main className="container flex-1 min-h-0 py-4 px-4 flex flex-col gap-4 lg:overflow-hidden">
-        <div className="flex flex-col gap-4 lg:flex-row lg:flex-1 lg:min-h-0">
+      <main className="container flex-1 py-4 px-4 flex flex-col gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
 
           {/* ── LEFT COLUMN ── */}
-          <div className="flex flex-col gap-4 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+          <div className="flex flex-col gap-4 lg:flex-1">
 
             {/* Title + badge */}
             <section className="space-y-2">
@@ -203,7 +203,7 @@ const Index = () => {
               - Mobile:  natural height, page scrolls
               - Desktop: flex-1 + overflow-y-auto → only this div scrolls
             */}
-            <div className="space-y-4">
+            <div className="space-y-4 pb-4">
               {isError && (
                 <div className="flex items-center gap-3 rounded-md border border-[hsl(var(--risk-high)/0.4)] bg-[hsl(var(--risk-high)/0.1)] p-4 text-sm text-[hsl(var(--risk-high))]">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
@@ -267,8 +267,8 @@ const Index = () => {
             )}
           </div>
 
-          {/* ── RIGHT COLUMN: chat — desktop only ── */}
-          <div className="no-print hidden lg:flex lg:w-[360px] lg:shrink-0 lg:flex-col lg:min-h-0">
+          {/* ── RIGHT COLUMN: chat — desktop only, sticky below header ── */}
+          <div className="no-print hidden lg:flex lg:w-[360px] lg:shrink-0 lg:flex-col lg:sticky lg:top-[4.5rem]" style={{ height: "calc(100dvh - 5.5rem)" }}>
             <ChatPanel
               buildingType={building}
               usage={context}
