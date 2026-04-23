@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/Header";
 import { BuildingSelector } from "@/components/BuildingSelector";
@@ -40,6 +40,11 @@ const Index = () => {
   const [page, setPage]                 = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<RuleCategory | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
+
+  useEffect(() => {
+    document.body.style.overflow = chatOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [chatOpen]);
 
   const filters = { building, area, context, floors, occupants, ceilingHeight, volume };
 
