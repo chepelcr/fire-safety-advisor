@@ -27,6 +27,12 @@ jobs:
       - run: bun install
 
       - name: Build
+        env:
+          VITE_AWS_REGION: ${{ secrets.VITE_AWS_REGION }}
+          VITE_COGNITO_IDENTITY_POOL_ID: ${{ secrets.VITE_COGNITO_IDENTITY_POOL_ID }}
+          VITE_COGNITO_USER_POOL_ID: ${{ secrets.VITE_COGNITO_USER_POOL_ID }}
+          VITE_COGNITO_USER_POOL_CLIENT_ID: ${{ secrets.VITE_COGNITO_USER_POOL_CLIENT_ID }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
         run: bun run build
 
       - name: SPA fallback (404.html)

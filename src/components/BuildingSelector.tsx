@@ -1,6 +1,6 @@
 import { Building2, Factory, Home } from "lucide-react";
 import { useLang } from "@/contexts/LangContext";
-import type { BuildingType } from "@/data/knowledgeBase";
+import type { BuildingType } from "@/services/fireCodeApi";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,15 +12,32 @@ interface Props {
   onAreaChange: (a: number) => void;
   context: string;
   onContextChange: (c: string) => void;
+  floors: number;
+  onFloorsChange: (v: number) => void;
+  occupants: number;
+  onOccupantsChange: (v: number) => void;
+  ceilingHeight: number;
+  onCeilingHeightChange: (v: number) => void;
+  volume: number;
+  onVolumeChange: (v: number) => void;
 }
 
-export function BuildingSelector({ value, onChange, area, onAreaChange, context, onContextChange }: Props) {
+export function BuildingSelector({
+  value, onChange,
+  area, onAreaChange,
+  context, onContextChange,
+  floors, onFloorsChange,
+  occupants, onOccupantsChange,
+  ceilingHeight, onCeilingHeightChange,
+  volume, onVolumeChange,
+}: Props) {
   const { tr } = useLang();
   const types: { id: BuildingType; icon: typeof Home; label: string }[] = [
     { id: "residencial", icon: Home, label: tr.residencial },
     { id: "comercial", icon: Building2, label: tr.comercial },
     { id: "industrial", icon: Factory, label: tr.industrial },
   ];
+
   return (
     <div className="panel p-5 space-y-5">
       <div>
@@ -47,7 +64,8 @@ export function BuildingSelector({ value, onChange, area, onAreaChange, context,
           })}
         </div>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+      <div className="grid grid-cols-2 gap-3">
         <div>
           <Label htmlFor="area" className="text-xs uppercase tracking-wider text-muted-foreground">{tr.area}</Label>
           <Input
@@ -62,14 +80,62 @@ export function BuildingSelector({ value, onChange, area, onAreaChange, context,
         </div>
         <div>
           <Label htmlFor="ctx" className="text-xs uppercase tracking-wider text-muted-foreground">
-            {/* simple label */}
-            {tr === undefined ? "" : "Uso (restaurante, bodega…)"}
+            Uso
           </Label>
           <Input
             id="ctx"
             value={context}
             onChange={(e) => onContextChange(e.target.value)}
-            placeholder="restaurante, bodega, oficina…"
+            placeholder="restaurante, bodega…"
+            className="mt-2 bg-input/60"
+          />
+        </div>
+        <div>
+          <Label htmlFor="floors" className="text-xs uppercase tracking-wider text-muted-foreground">{tr.floors}</Label>
+          <Input
+            id="floors"
+            type="number"
+            min={1}
+            value={floors || ""}
+            onChange={(e) => onFloorsChange(Number(e.target.value))}
+            placeholder="1"
+            className="mt-2 bg-input/60"
+          />
+        </div>
+        <div>
+          <Label htmlFor="occupants" className="text-xs uppercase tracking-wider text-muted-foreground">{tr.occupants}</Label>
+          <Input
+            id="occupants"
+            type="number"
+            min={0}
+            value={occupants || ""}
+            onChange={(e) => onOccupantsChange(Number(e.target.value))}
+            placeholder="50"
+            className="mt-2 bg-input/60"
+          />
+        </div>
+        <div>
+          <Label htmlFor="ceiling" className="text-xs uppercase tracking-wider text-muted-foreground">{tr.ceilingHeight}</Label>
+          <Input
+            id="ceiling"
+            type="number"
+            min={0}
+            step={0.1}
+            value={ceilingHeight || ""}
+            onChange={(e) => onCeilingHeightChange(Number(e.target.value))}
+            placeholder="3.5"
+            className="mt-2 bg-input/60"
+          />
+        </div>
+        <div>
+          <Label htmlFor="volume" className="text-xs uppercase tracking-wider text-muted-foreground">{tr.volume}</Label>
+          <Input
+            id="volume"
+            type="number"
+            min={0}
+            value={volume || ""}
+            onChange={(e) => onVolumeChange(Number(e.target.value))}
+            placeholder="840"
             className="mt-2 bg-input/60"
           />
         </div>

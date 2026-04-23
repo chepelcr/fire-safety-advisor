@@ -1,17 +1,33 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, AlertTriangle, BookOpen, MapPin } from "lucide-react";
+import { Send, Sparkles, AlertTriangle, BookOpen, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/contexts/LangContext";
-import { answerQuestion, type ChatAnswer } from "@/lib/engine";
+import { fireCodeApi, type EvaluateResponse } from "@/services/fireCodeApi";
 import { cn } from "@/lib/utils";
 
-interface Msg { role: "user" | "assistant"; text: string; answer?: ChatAnswer; }
+interface Props {
+  buildingType: string;
+  usage: string;
+  areaM2?: number;
+  floors?: number;
+  occupants?: number;
+  ceilingHeight?: number;
+  volume?: number;
+}
 
-export function ChatPanel() {
+interface Msg {
+  role: "user" | "assistant";
+  text: string;
+  answer?: EvaluateResponse;
+  loading?: boolean;
+}
+
+export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceilingHeight, volume }: Props) {
   const { lang, tr } = useLang();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,11 +38,46 @@ export function ChatPanel() {
     ? ["¿Qué sistema necesita un restaurante?", "¿Dónde instalo detectores de humo?", "¿Necesito rociadores en una bodega?"]
     : ["What system does a restaurant need?", "Where do I install smoke detectors?", "Do I need sprinklers in a warehouse?"];
 
-  const ask = (text: string) => {
-    if (!text.trim()) return;
-    const a = answerQuestion(text);
-    setMessages((m) => [...m, { role: "user", text }, { role: "assistant", text: lang === "es" ? a.summary : a.summary_en, answer: a }]);
+  const ask = async (text: string) => {
+    if (!text.trim() || isLoading) return;
+    setMessages((m) => [...m, { role: "user", text }]);
     setInput("");
+    setIsLoading(true);
+
+    try {
+      const result = await fireCodeApi.evaluate({
+        building_type: buildingType || "comercial",
+        usage: usage || text,
+        user_query: text,
+        area_m2: areaM2 || undefined,
+        floors: floors || undefined,
+        occupants: occupants || undefined,
+        ceiling_height_m: ceilingHeight || undefined,
+        volume_m3: volume || undefined,
+      });
+
+      const summary = result.matchedRules.length > 0
+        ? lang === "es"
+          ? `Encontré ${result.matchedRules.length} norma(s) aplicable(s).`
+          : `Found ${result.matchedRules.length} applicable standard(s).`
+        : lang === "es"
+        ? "No encontré normas específicas para esa consulta."
+        : "No specific standards found for that query.";
+
+      setMessages((m) => [...m, { role: "assistant", text: summary, answer: result }]);
+    } catch {
+      setMessages((m) => [
+        ...m,
+        {
+          role: "assistant",
+          text: lang === "es"
+            ? "Error al procesar la consulta. Verifique su conexión."
+            : "Error processing the request. Please check your connection.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -35,6 +86,7 @@ export function ChatPanel() {
         <Sparkles className="h-4 w-4 text-primary" />
         <div className="text-sm font-semibold">{tr.assistant}</div>
       </div>
+
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">
         {messages.length === 0 && (
           <div className="space-y-3">
@@ -65,31 +117,60 @@ export function ChatPanel() {
               )}
             >
               <div className="whitespace-pre-wrap">{m.text}</div>
+
               {m.answer && m.answer.matchedRules.length > 0 && (
                 <div className="mt-3 space-y-2">
-                  {m.answer.references.length > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  {m.answer.reference.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                       <BookOpen className="h-3.5 w-3.5" />
                       <span className="font-semibold">{tr.refLabel}:</span>
-                      {m.answer.references.map((r) => (
+                      {m.answer.reference.map((r) => (
                         <span key={r} className="rounded border border-border bg-background/60 px-1.5 py-0.5 font-mono text-[10px]">{r}</span>
                       ))}
                     </div>
                   )}
+
                   <div className="rounded-md border border-border bg-background/40 p-2 text-xs">
                     <div className="flex items-center gap-1.5 font-semibold text-accent">
                       <MapPin className="h-3.5 w-3.5" /> {tr.crLabel}
                     </div>
                     <ul className="mt-1.5 space-y-1 text-muted-foreground">
                       {m.answer.matchedRules.map((r) => (
-                        <li key={r.id}>• {lang === "es" ? r.practical_interpretation : r.practical_interpretation_en}</li>
+                        <li key={r.id}>• {r.title} — <span className="opacity-80">{r.description.slice(0, 80)}…</span></li>
                       ))}
                     </ul>
                   </div>
+
+                  {m.answer.requirements.length > 0 && (
+                    <div className="rounded-md border border-border bg-background/30 p-2 text-xs">
+                      <div className="font-semibold text-accent mb-1">{tr.requirements}:</div>
+                      <ul className="space-y-0.5 text-muted-foreground">
+                        {m.answer.requirements.map((req, ri) => (
+                          <li key={ri}>• {req}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {m.answer.contextCr.length > 0 && (
+                    <div className="rounded-md border border-border bg-background/20 p-2 text-xs text-muted-foreground">
+                      <ul className="space-y-0.5">
+                        {m.answer.contextCr.map((ctx, ci) => (
+                          <li key={ci}>• {ctx}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
                   {m.answer.risk === "alto" && (
                     <div className="flex items-start gap-2 rounded-md border border-[hsl(var(--risk-high)/0.4)] bg-[hsl(var(--risk-high)/0.1)] p-2 text-xs text-[hsl(var(--risk-high))]">
                       <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                      <span><strong>{tr.riskWarning}:</strong> {lang === "es" ? "El incumplimiento puede generar paralización de obra y responsabilidad civil." : "Non-compliance may cause work shutdown and civil liability."}</span>
+                      <span>
+                        <strong>{tr.riskWarning}:</strong>{" "}
+                        {lang === "es"
+                          ? "El incumplimiento puede generar paralización de obra y responsabilidad civil."
+                          : "Non-compliance may cause work shutdown and civil liability."}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -97,7 +178,16 @@ export function ChatPanel() {
             </div>
           </div>
         ))}
+
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="rounded-lg bg-secondary/60 border border-border px-3 py-2 text-sm">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            </div>
+          </div>
+        )}
       </div>
+
       <form
         onSubmit={(e) => { e.preventDefault(); ask(input); }}
         className="flex items-center gap-2 border-t border-border p-3"
@@ -107,9 +197,10 @@ export function ChatPanel() {
           onChange={(e) => setInput(e.target.value)}
           placeholder={tr.askPlaceholder}
           className="bg-input/60"
+          disabled={isLoading}
         />
-        <Button type="submit" size="icon" className="shrink-0">
-          <Send className="h-4 w-4" />
+        <Button type="submit" size="icon" className="shrink-0" disabled={isLoading}>
+          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
         </Button>
       </form>
     </div>
