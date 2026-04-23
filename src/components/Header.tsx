@@ -16,7 +16,7 @@ export function Header({ chatButton }: HeaderProps) {
             <Flame className="h-5 w-5 text-primary" />
           </div>
           <div className="leading-tight">
-            <div className="text-lg font-bold tracking-tight">{tr.appName} <span className="text-primary">Assistant</span></div>
+            <div className="text-lg font-bold tracking-tight">{tr.appName} <span className="text-primary">CR</span></div>
             <div className="text-xs text-muted-foreground">{tr.tagline}</div>
           </div>
         </div>
