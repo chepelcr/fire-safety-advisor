@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, Sparkles, AlertTriangle, BookOpen, MapPin, Loader2 } from "lucide-react";
+import { Send, Sparkles, AlertTriangle, BookOpen, MapPin, Loader2, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/contexts/LangContext";
@@ -14,6 +14,7 @@ interface Props {
   occupants?: number;
   ceilingHeight?: number;
   volume?: number;
+  onClose?: () => void;
 }
 
 interface Msg {
@@ -23,7 +24,7 @@ interface Msg {
   loading?: boolean;
 }
 
-export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceilingHeight, volume }: Props) {
+export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceilingHeight, volume, onClose }: Props) {
   const { lang, tr } = useLang();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Msg[]>([]);
@@ -85,10 +86,32 @@ export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceil
   };
 
   return (
-    <div className="panel flex h-[500px] lg:h-full flex-col">
-      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <Sparkles className="h-4 w-4 text-primary" />
-        <div className="text-sm font-semibold">{tr.assistant}</div>
+    <div className="panel flex h-full flex-col">
+      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <span className="text-sm font-semibold">{tr.assistant}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {messages.length > 0 && (
+            <button
+              onClick={() => setMessages([])}
+              title={lang === "es" ? "Limpiar chat" : "Clear chat"}
+              className="rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              title={lang === "es" ? "Cerrar" : "Close"}
+              className="rounded p-1 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-4">

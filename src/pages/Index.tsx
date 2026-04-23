@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/contexts/LangContext";
 import { fireCodeApi, BuildingType, RuleCategory } from "@/services/fireCodeApi";
 import { cn } from "@/lib/utils";
-import { Printer, ShieldAlert, ListChecks, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+import { Printer, ShieldAlert, ListChecks, AlertTriangle, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 const PAGE_SIZE = 20;
 
@@ -39,6 +39,7 @@ const Index = () => {
   const [volume, setVolume]             = useState<number>(0);
   const [page, setPage]                 = useState<number>(0);
   const [selectedCategory, setSelectedCategory] = useState<RuleCategory | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const filters = { building, area, context, floors, occupants, ceilingHeight, volume };
 
@@ -80,7 +81,19 @@ const Index = () => {
   return (
     /* Outer: natural scroll on mobile, viewport-locked on desktop */
     <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col scanline">
-      <Header />
+      <Header
+        chatButton={
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 lg:hidden"
+            onClick={() => setChatOpen(true)}
+          >
+            <Sparkles className="h-4 w-4" />
+            {lang === "es" ? "Asistente" : "Assistant"}
+          </Button>
+        }
+      />
 
       {/*
         Mobile:  flex-col, everything stacks, page scrolls normally.
@@ -254,19 +267,16 @@ const Index = () => {
             )}
           </div>
 
-          {/* ── RIGHT COLUMN: chat ──
-              Mobile:  natural height (500px), part of page scroll
-              Desktop: flex-col + min-h-0, fills column height, only messages scroll inside
-          */}
-          <div className="no-print lg:w-[360px] lg:shrink-0 lg:flex lg:flex-col lg:min-h-0">
+          {/* ── RIGHT COLUMN: chat — desktop only ── */}
+          <div className="no-print hidden lg:flex lg:w-[360px] lg:shrink-0 lg:flex-col lg:min-h-0">
             <ChatPanel
               buildingType={building}
               usage={context}
-              areaM2={area       || undefined}
-              floors={floors     || undefined}
+              areaM2={area         || undefined}
+              floors={floors       || undefined}
               occupants={occupants || undefined}
               ceilingHeight={ceilingHeight || undefined}
-              volume={volume     || undefined}
+              volume={volume       || undefined}
             />
           </div>
         </div>
@@ -275,6 +285,22 @@ const Index = () => {
           {tr.disclaimer}
         </footer>
       </main>
+
+      {/* ── Mobile chat modal — full screen overlay, lg:hidden ── */}
+      {chatOpen && (
+        <div className="fixed inset-0 z-50 flex flex-col bg-background lg:hidden">
+          <ChatPanel
+            buildingType={building}
+            usage={context}
+            areaM2={area         || undefined}
+            floors={floors       || undefined}
+            occupants={occupants || undefined}
+            ceilingHeight={ceilingHeight || undefined}
+            volume={volume       || undefined}
+            onClose={() => setChatOpen(false)}
+          />
+        </div>
+      )}
     </div>
   );
 };
