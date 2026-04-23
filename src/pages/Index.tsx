@@ -90,7 +90,7 @@ const Index = () => {
         <div className="flex flex-col gap-4 lg:flex-row lg:flex-1 lg:min-h-0">
 
           {/* ── LEFT COLUMN ── */}
-          <div className="flex flex-col gap-4 lg:flex-1 lg:min-h-0 lg:overflow-hidden">
+          <div className="flex flex-col gap-4 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
 
             {/* Title + badge */}
             <section className="space-y-2">
@@ -190,7 +190,7 @@ const Index = () => {
               - Mobile:  natural height, page scrolls
               - Desktop: flex-1 + overflow-y-auto → only this div scrolls
             */}
-            <div className="space-y-4 lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:pr-1">
+            <div className="space-y-4">
               {isError && (
                 <div className="flex items-center gap-3 rounded-md border border-[hsl(var(--risk-high)/0.4)] bg-[hsl(var(--risk-high)/0.1)] p-4 text-sm text-[hsl(var(--risk-high))]">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
