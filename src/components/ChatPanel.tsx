@@ -60,6 +60,10 @@ export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceil
         ? lang === "es"
           ? `Encontré ${result.matchedRules.length} norma(s) aplicable(s).`
           : `Found ${result.matchedRules.length} applicable standard(s).`
+        : result.foundryUsed && result.requirements.length > 0
+        ? lang === "es"
+          ? "El agente IA proporcionó recomendaciones generales."
+          : "The AI agent provided general recommendations."
         : lang === "es"
         ? "No encontré normas específicas para esa consulta."
         : "No specific standards found for that query.";
@@ -118,9 +122,9 @@ export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceil
             >
               <div className="whitespace-pre-wrap">{m.text}</div>
 
-              {m.answer && m.answer.matchedRules.length > 0 && (
+              {m.answer && (m.answer.matchedRules.length > 0 || m.answer.foundryUsed) && (
                 <div className="mt-3 space-y-2">
-                  {m.answer.reference.length > 0 && (
+                  {m.answer.foundryUsed && m.answer.reference.length > 0 && (
                     <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                       <BookOpen className="h-3.5 w-3.5" />
                       <span className="font-semibold">{tr.refLabel}:</span>
@@ -130,18 +134,20 @@ export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceil
                     </div>
                   )}
 
-                  <div className="rounded-md border border-border bg-background/40 p-2 text-xs">
-                    <div className="flex items-center gap-1.5 font-semibold text-accent">
-                      <MapPin className="h-3.5 w-3.5" /> {tr.crLabel}
+                  {m.answer.matchedRules.length > 0 && (
+                    <div className="rounded-md border border-border bg-background/40 p-2 text-xs">
+                      <div className="flex items-center gap-1.5 font-semibold text-accent">
+                        <MapPin className="h-3.5 w-3.5" /> {tr.crLabel}
+                      </div>
+                      <ul className="mt-1.5 space-y-1 text-muted-foreground">
+                        {m.answer.matchedRules.map((r) => (
+                          <li key={r.id}>• {r.title} — <span className="opacity-80">{r.description.slice(0, 80)}…</span></li>
+                        ))}
+                      </ul>
                     </div>
-                    <ul className="mt-1.5 space-y-1 text-muted-foreground">
-                      {m.answer.matchedRules.map((r) => (
-                        <li key={r.id}>• {r.title} — <span className="opacity-80">{r.description.slice(0, 80)}…</span></li>
-                      ))}
-                    </ul>
-                  </div>
+                  )}
 
-                  {m.answer.requirements.length > 0 && (
+                  {m.answer.foundryUsed && m.answer.requirements.length > 0 && (
                     <div className="rounded-md border border-border bg-background/30 p-2 text-xs">
                       <div className="font-semibold text-accent mb-1">{tr.requirements}:</div>
                       <ul className="space-y-0.5 text-muted-foreground">
@@ -152,7 +158,7 @@ export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceil
                     </div>
                   )}
 
-                  {m.answer.contextCr.length > 0 && (
+                  {m.answer.foundryUsed && m.answer.contextCr.length > 0 && (
                     <div className="rounded-md border border-border bg-background/20 p-2 text-xs text-muted-foreground">
                       <ul className="space-y-0.5">
                         {m.answer.contextCr.map((ctx, ci) => (
@@ -160,6 +166,14 @@ export function ChatPanel({ buildingType, usage, areaM2, floors, occupants, ceil
                         ))}
                       </ul>
                     </div>
+                  )}
+
+                  {!m.answer.foundryUsed && (
+                    <p className="text-[11px] italic text-muted-foreground">
+                      {lang === "es"
+                        ? "Evaluación IA no disponible — mostrando resultados determinísticos."
+                        : "AI evaluation unavailable — showing deterministic results."}
+                    </p>
                   )}
 
                   {m.answer.risk === "alto" && (

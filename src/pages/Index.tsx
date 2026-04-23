@@ -8,7 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/contexts/LangContext";
 import { fireCodeApi, BuildingType } from "@/services/fireCodeApi";
-import { Printer, ShieldAlert, ListChecks, AlertTriangle } from "lucide-react";
+import { Printer, ShieldAlert, ListChecks, AlertTriangle, ChevronLeft, ChevronRight } from "lucide-react";
+
+const PAGE_SIZE = 20;
 
 const Index = () => {
   const { tr, lang } = useLang();
@@ -20,9 +22,12 @@ const Index = () => {
   const [occupants, setOccupants] = useState<number>(0);
   const [ceilingHeight, setCeilingHeight] = useState<number>(0);
   const [volume, setVolume] = useState<number>(0);
+  const [page, setPage] = useState<number>(0);
 
-  const { data: ruleGroups = [], isLoading, isError } = useQuery({
-    queryKey: ["rules", building, area, context, floors, occupants, ceilingHeight, volume],
+  const filters = { building, area, context, floors, occupants, ceilingHeight, volume };
+
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["rules", filters, page],
     queryFn: () =>
       fireCodeApi.getRules({
         building_type: building || undefined,
@@ -32,15 +37,25 @@ const Index = () => {
         occupants: occupants || undefined,
         ceiling_height_m: ceilingHeight || undefined,
         volume_m3: volume || undefined,
+        page,
+        page_size: PAGE_SIZE,
       }),
     staleTime: 30_000,
   });
 
-  const totalRules = ruleGroups.reduce((acc, g) => acc + g.quantity, 0);
+  const ruleGroups = data?.data ?? [];
+  const pagination = data?.pagination;
+
+  const totalRules = pagination?.totalElements ?? 0;
   const highRisk = ruleGroups.reduce(
     (acc, g) => acc + g.rules.filter((r) => r.risk.level === "alto").length,
     0
   );
+
+  const handleFilterChange = <T,>(setter: (v: T) => void) => (v: T) => {
+    setter(v);
+    setPage(0);
+  };
 
   return (
     <div className="min-h-screen scanline">
@@ -66,13 +81,13 @@ const Index = () => {
             </p>
           </div>
           <BuildingSelector
-            value={building} onChange={setBuilding}
-            area={area} onAreaChange={setArea}
-            context={context} onContextChange={setContext}
-            floors={floors} onFloorsChange={setFloors}
-            occupants={occupants} onOccupantsChange={setOccupants}
-            ceilingHeight={ceilingHeight} onCeilingHeightChange={setCeilingHeight}
-            volume={volume} onVolumeChange={setVolume}
+            value={building} onChange={handleFilterChange(setBuilding)}
+            area={area} onAreaChange={handleFilterChange(setArea)}
+            context={context} onContextChange={handleFilterChange(setContext)}
+            floors={floors} onFloorsChange={handleFilterChange(setFloors)}
+            occupants={occupants} onOccupantsChange={handleFilterChange(setOccupants)}
+            ceilingHeight={ceilingHeight} onCeilingHeightChange={handleFilterChange(setCeilingHeight)}
+            volume={volume} onVolumeChange={handleFilterChange(setVolume)}
           />
         </section>
 
@@ -143,6 +158,40 @@ const Index = () => {
               ruleGroups.map((group) => (
                 <CategoryCard key={group.type} group={group} />
               ))
+            )}
+
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between panel px-4 py-3">
+                <span className="text-xs text-muted-foreground">
+                  {lang === "es"
+                    ? `Página ${pagination.page + 1} de ${pagination.totalPages} — ${pagination.totalElements} normas`
+                    : `Page ${pagination.page + 1} of ${pagination.totalPages} — ${pagination.totalElements} rules`}
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    disabled={pagination.page === 0 || isLoading}
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="min-w-[2rem] text-center text-xs font-semibold">
+                    {pagination.page + 1}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    disabled={pagination.page >= pagination.totalPages - 1 || isLoading}
+                    onClick={() => setPage((p) => p + 1)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
             )}
           </div>
 

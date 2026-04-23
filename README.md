@@ -75,7 +75,7 @@ Called on page load and whenever filters change. Returns rules grouped by catego
 import { fireCodeApi } from "@/services/fireCodeApi";
 
 const groups = await fireCodeApi.getRules({
-  building_type: "comercial",
+  building_type: BuildingType.comercial,  // → 2
   usage: "restaurante",
   area_m2: 450,
   floors: 3,
@@ -88,7 +88,7 @@ Called by the chat panel. Sends the user's question with the current building co
 
 ```typescript
 const result = await fireCodeApi.evaluate({
-  building_type: "comercial",
+  building_type: BuildingType.comercial,  // → 2
   usage: "restaurante",
   user_query: "¿Necesito rociadores en la cocina?",
   area_m2: 450,

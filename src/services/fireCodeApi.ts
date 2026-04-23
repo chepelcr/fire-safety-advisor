@@ -56,6 +56,18 @@ export enum RuleCategory {
   accionamiento = 4,
 }
 
+export interface PaginationResponse {
+  page: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+}
+
+export interface RuleListResponse {
+  data: RuleGroupDTO[];
+  pagination: PaginationResponse;
+}
+
 export interface GetRulesParams {
   building_type?: BuildingType;
   category?: RuleCategory;
@@ -66,6 +78,8 @@ export interface GetRulesParams {
   ceiling_height_m?: number;
   volume_m3?: number;
   standard?: string;
+  page?: number;
+  page_size?: number;
 }
 
 export interface EvaluateRequest {
@@ -112,8 +126,8 @@ export const fireCodeApi = {
    * GET /rules — returns rules grouped by fire protection category.
    * All params are optional; omitting them returns all groups.
    */
-  async getRules(params: GetRulesParams = {}): Promise<RuleGroupDTO[]> {
-    return resolveBody<RuleGroupDTO[]>(
+  async getRules(params: GetRulesParams = {}): Promise<RuleListResponse> {
+    return resolveBody<RuleListResponse>(
       get({
         apiName: API_NAME,
         path: "/rules",
