@@ -286,7 +286,6 @@ const Index = () => {
               volume={volume       || undefined}
               messages={chatMessages}
               setMessages={setChatMessages}
-              onClose={() => setChatOpen(false)}
             />
           </div>
         </div>
@@ -315,6 +314,8 @@ const Index = () => {
               ceilingHeight={ceilingHeight || undefined}
               volume={volume       || undefined}
               onClose={() => setChatOpen(false)}
+              messages={chatMessages}
+              setMessages={setChatMessages}
             />
           </div>
         </div>
