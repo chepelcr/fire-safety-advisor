@@ -1,7 +1,8 @@
-import { Flame, Languages, Home } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Flame, Languages, Home, LayoutDashboard, LogIn, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLang } from "@/contexts/LangContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface HeaderProps {
   chatButton?: React.ReactNode;
@@ -10,6 +11,8 @@ interface HeaderProps {
 export function Header({ chatButton }: HeaderProps) {
   const { lang, setLang, tr } = useLang();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const onDemo = pathname.startsWith("/demo");
 
   return (
@@ -34,6 +37,32 @@ export function Header({ chatButton }: HeaderProps) {
             </Button>
           )}
           {chatButton}
+          {user ? (
+            <>
+              <Button asChild variant="ghost" size="sm" className="gap-2 hidden sm:inline-flex">
+                <Link to="/dashboard">
+                  <LayoutDashboard className="h-4 w-4" />
+                  {lang === "es" ? "Panel" : "Dashboard"}
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 hidden sm:inline-flex"
+                onClick={async () => { await signOut(); navigate("/"); }}
+              >
+                <LogOut className="h-4 w-4" />
+                {lang === "es" ? "Salir" : "Sign out"}
+              </Button>
+            </>
+          ) : (
+            <Button asChild variant="ghost" size="sm" className="gap-2 hidden sm:inline-flex">
+              <Link to="/login">
+                <LogIn className="h-4 w-4" />
+                {lang === "es" ? "Ingresar" : "Sign in"}
+              </Link>
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
