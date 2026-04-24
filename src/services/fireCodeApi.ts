@@ -116,9 +116,9 @@ function toQueryString(params: Record<string, unknown>): Record<string, string> 
   );
 }
 
-async function resolveBody<T>(op: { response: Promise<{ body: { json: () => Promise<T> } }> }): Promise<T> {
+async function resolveBody<T>(op: { response: Promise<{ body: { json: () => Promise<unknown> } }> }): Promise<T> {
   const resp = await op.response;
-  return resp.body.json();
+  return (await resp.body.json()) as T;
 }
 
 export const fireCodeApi = {
