@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { Flame, Languages, ArrowRight, ShieldCheck, Zap, FileText, BookOpen, MapPin, MessageSquare, Printer, Layers, Clock, AlertTriangle, BookOpenCheck, Sparkles, Bot, Workflow } from "lucide-react";
+import { ArrowRight, ShieldCheck, Zap, FileText, BookOpen, MapPin, MessageSquare, Printer, Layers, Clock, AlertTriangle, BookOpenCheck, Sparkles, Bot, Workflow } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Header } from "@/components/Header";
 import { useLang } from "@/contexts/LangContext";
 
 const Landing = () => {
-  const { tr, lang, setLang } = useLang();
+  const { tr } = useLang();
 
   const problems = [
     { icon: BookOpen, t: tr.problem_1_t, d: tr.problem_1_d },
@@ -33,36 +34,47 @@ const Landing = () => {
     { icon: ShieldCheck, t: tr.how_3_t, d: tr.how_3_d },
   ];
 
+  const demoButton = (
+    <Button asChild size="sm" className="gap-2">
+      <Link to="/demo">
+        {tr.nav_demo} <ArrowRight className="h-4 w-4" />
+      </Link>
+    </Button>
+  );
+
+  type Card = { icon: typeof Zap; t: string; d: string };
+  const renderCard = (
+    { icon: Icon, t, d }: Card,
+    opts: { tone?: "primary" | "destructive"; index?: number } = {}
+  ) => {
+    const tone = opts.tone ?? "primary";
+    const toneCls =
+      tone === "destructive"
+        ? "bg-destructive/10 border-destructive/30 text-destructive"
+        : "bg-primary/10 border-primary/30 text-primary";
+    return (
+      <div key={t} className="relative rounded-lg border border-border bg-card overflow-hidden hover:border-primary/40 transition-colors">
+        {opts.index !== undefined && (
+          <div className="absolute top-3 right-3 text-xs font-mono text-primary bg-background border border-primary/30 px-2 py-0.5 rounded">
+            0{opts.index + 1}
+          </div>
+        )}
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3 bg-muted/30">
+          <div className={`flex h-9 w-9 items-center justify-center rounded-md border ${toneCls}`}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <div className="text-sm font-semibold">{t}</div>
+        </div>
+        <div className="px-4 py-4">
+          <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 border border-primary/30">
-              <Flame className="h-5 w-5 text-primary" />
-            </div>
-            <div className="leading-tight">
-              <div className="text-lg font-bold tracking-tight">{tr.appName} <span className="text-primary">CR</span></div>
-              <div className="text-xs text-muted-foreground hidden sm:block">{tr.tagline}</div>
-            </div>
-          </Link>
-          <nav className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
-            <a href="#features" className="hover:text-foreground transition-colors">{tr.nav_features}</a>
-            <a href="#how" className="hover:text-foreground transition-colors">{tr.nav_how}</a>
-            <Link to="/demo" className="hover:text-foreground transition-colors">{tr.nav_demo}</Link>
-          </nav>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setLang(lang === "es" ? "en" : "es")} className="gap-2">
-              <Languages className="h-4 w-4" />
-              {lang === "es" ? "EN" : "ES"}
-            </Button>
-            <Button asChild size="sm" className="hidden sm:inline-flex">
-              <Link to="/demo">{tr.nav_demo}</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Header chatButton={demoButton} />
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border">
@@ -108,15 +120,7 @@ const Landing = () => {
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{tr.problem_title}</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
-            {problems.map(({ icon: Icon, t, d }) => (
-              <div key={t} className="rounded-lg border border-border bg-card p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-destructive/10 border border-destructive/30 mb-4">
-                  <Icon className="h-5 w-5 text-destructive" />
-                </div>
-                <h3 className="font-semibold mb-2">{t}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
-              </div>
-            ))}
+            {problems.map((c) => renderCard(c, { tone: "destructive" }))}
           </div>
         </div>
       </section>
@@ -130,15 +134,7 @@ const Landing = () => {
             <p className="mt-4 text-muted-foreground text-lg">{tr.solution_sub}</p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
-            {solutions.map(({ icon: Icon, t, d }) => (
-              <div key={t} className="rounded-lg border border-border bg-card p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 border border-primary/30 mb-4">
-                  <Icon className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">{t}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
-              </div>
-            ))}
+            {solutions.map((c) => renderCard(c))}
           </div>
         </div>
       </section>
@@ -151,15 +147,7 @@ const Landing = () => {
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{tr.features_title}</h2>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map(({ icon: Icon, t, d }) => (
-              <div key={t} className="rounded-lg border border-border bg-card p-6 hover:border-primary/40 transition-colors">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 border border-primary/30 mb-4">
-                  <Icon className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">{t}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
-              </div>
-            ))}
+            {features.map((c) => renderCard(c))}
           </div>
         </div>
       </section>
@@ -172,18 +160,7 @@ const Landing = () => {
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">{tr.how_title}</h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
-            {steps.map(({ icon: Icon, t, d }, i) => (
-              <div key={t} className="relative rounded-lg border border-border bg-card p-6">
-                <div className="absolute -top-3 left-6 text-xs font-mono text-primary bg-background border border-primary/30 px-2 py-0.5 rounded">
-                  0{i + 1}
-                </div>
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 border border-primary/30 mb-4 mt-2">
-                  <Icon className="h-5 w-5 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">{t}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{d}</p>
-              </div>
-            ))}
+            {steps.map((c, i) => renderCard(c, { index: i }))}
           </div>
         </div>
       </section>
@@ -215,21 +192,12 @@ const Landing = () => {
       {/* Footer */}
       <footer className="bg-background">
         <div className="container py-10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 border border-primary/30">
-              <Flame className="h-4 w-4 text-primary" />
-            </div>
-            <div className="text-sm">
-              <div className="font-semibold">{tr.appName} <span className="text-primary">CR</span></div>
-              <div className="text-xs text-muted-foreground">{tr.footer_tagline}</div>
-            </div>
+          <div className="text-sm text-muted-foreground">
+            © {new Date().getFullYear()} {tr.appName} CR. {tr.footer_rights}
           </div>
-          <div className="flex items-center gap-6 text-sm">
-            <Link to="/demo" className="text-muted-foreground hover:text-foreground transition-colors">
-              {tr.footer_demo}
-            </Link>
-            <span className="text-xs text-muted-foreground">© {new Date().getFullYear()} FireCode CR. {tr.footer_rights}</span>
-          </div>
+          <Link to="/demo" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            {tr.footer_demo}
+          </Link>
         </div>
       </footer>
     </div>
