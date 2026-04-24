@@ -160,7 +160,7 @@ export const fireCodeApi = {
       post({
         apiName: API_NAME,
         path: "/evaluate",
-        options: { body: request as unknown as Record<string, unknown> },
+        options: { body: request as unknown as Record<string, unknown> as never },
       })
     );
   },
