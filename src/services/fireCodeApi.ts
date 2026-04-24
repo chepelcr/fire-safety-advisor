@@ -116,9 +116,9 @@ function toQueryString(params: Record<string, unknown>): Record<string, string> 
   );
 }
 
-async function resolveBody<T>(op: { response: Promise<{ body: { json: () => Promise<T> } }> }): Promise<T> {
+async function resolveBody<T>(op: { response: Promise<{ body: { json: () => Promise<unknown> } }> }): Promise<T> {
   const resp = await op.response;
-  return resp.body.json();
+  return (await resp.body.json()) as T;
 }
 
 export const fireCodeApi = {
@@ -160,7 +160,7 @@ export const fireCodeApi = {
       post({
         apiName: API_NAME,
         path: "/evaluate",
-        options: { body: request as unknown as Record<string, unknown> },
+        options: { body: request as unknown as Record<string, unknown> as never },
       })
     );
   },
