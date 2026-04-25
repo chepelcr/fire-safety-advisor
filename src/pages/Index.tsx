@@ -28,7 +28,7 @@ const CATEGORY_TABS: { type: string; value: RuleCategory }[] = [
   { type: "accionamiento", value: RuleCategory.accionamiento },
 ];
 
-const Index = () => {
+const Index = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const { tr, lang } = useLang();
 
   const [building, setBuilding]         = useState<BuildingType>(BuildingType.comercial);
@@ -87,20 +87,22 @@ const Index = () => {
 
   return (
     /* Outer: natural scroll on mobile, viewport-locked on desktop */
-    <div className="flex flex-col scanline" style={{ minHeight: "100dvh" }}>
-      <Header
-        chatButton={
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 lg:hidden"
-            onClick={() => setChatOpen(true)}
-          >
-            <Sparkles className="h-4 w-4" />
-            {lang === "es" ? "Asistente" : "Assistant"}
-          </Button>
-        }
-      />
+    <div className="flex flex-col scanline" style={{ minHeight: embedded ? "auto" : "100dvh" }}>
+      {!embedded && (
+        <Header
+          chatButton={
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 lg:hidden"
+              onClick={() => setChatOpen(true)}
+            >
+              <Sparkles className="h-4 w-4" />
+              {lang === "es" ? "Asistente" : "Assistant"}
+            </Button>
+          }
+        />
+      )}
 
       {/*
         Mobile:  flex-col, everything stacks, page scrolls normally.
