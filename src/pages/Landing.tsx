@@ -3,9 +3,12 @@ import { ArrowRight, ShieldCheck, Zap, FileText, BookOpen, MapPin, MessageSquare
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { useLang } from "@/contexts/LangContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Landing = () => {
   const { tr } = useLang();
+  const { user } = useAuth();
+  const demoHref = user ? "/dashboard/evaluator" : "/demo";
 
   const problems = [
     { icon: BookOpen, t: tr.problem_1_t, d: tr.problem_1_d },
@@ -36,7 +39,7 @@ const Landing = () => {
 
   const demoButton = (
     <Button asChild size="sm" className="gap-2">
-      <Link to="/demo">
+      <Link to={demoHref}>
         {tr.nav_demo} <ArrowRight className="h-4 w-4" />
       </Link>
     </Button>
@@ -99,7 +102,7 @@ const Landing = () => {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" className="gap-2">
-                <Link to="/demo">
+                <Link to={demoHref}>
                   {tr.hero_cta} <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -180,7 +183,7 @@ const Landing = () => {
             <p className="mt-4 text-lg text-muted-foreground">{tr.cta_sub}</p>
             <div className="mt-8">
               <Button asChild size="lg" className="gap-2">
-                <Link to="/demo">
+                <Link to={demoHref}>
                   {tr.cta_button} <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -195,7 +198,7 @@ const Landing = () => {
           <div className="text-sm text-muted-foreground">
             © {new Date().getFullYear()} {tr.appName} CR. {tr.footer_rights}
           </div>
-          <Link to="/demo" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link to={demoHref} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             {tr.footer_demo}
           </Link>
         </div>

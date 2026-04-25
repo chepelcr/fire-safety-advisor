@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useLang } from "@/contexts/LangContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface HeaderProps {
   chatButton?: React.ReactNode;
@@ -37,7 +38,7 @@ export function Header({ chatButton }: HeaderProps) {
             <Button asChild variant="ghost" size="sm" className="gap-2 hidden sm:inline-flex">
               <Link to="/">
                 <Home className="h-4 w-4" />
-                {lang === "es" ? "Inicio" : "Home"}
+                {tr.home}
               </Link>
             </Button>
           )}
@@ -47,7 +48,7 @@ export function Header({ chatButton }: HeaderProps) {
               <Button asChild variant="ghost" size="sm" className="gap-2 hidden sm:inline-flex">
                 <Link to="/dashboard">
                   <LayoutDashboard className="h-4 w-4" />
-                  {lang === "es" ? "Panel" : "Dashboard"}
+                  {tr.nav_dashboard}
                 </Link>
               </Button>
               <Button
@@ -57,17 +58,18 @@ export function Header({ chatButton }: HeaderProps) {
                 onClick={async () => { await signOut(); navigate("/"); }}
               >
                 <LogOut className="h-4 w-4" />
-                {lang === "es" ? "Salir" : "Sign out"}
+                {tr.sign_out}
               </Button>
             </>
           ) : (
             <Button asChild variant="ghost" size="sm" className="gap-2 hidden sm:inline-flex">
               <Link to="/login">
                 <LogIn className="h-4 w-4" />
-                {lang === "es" ? "Ingresar" : "Sign in"}
+                {tr.sign_in}
               </Link>
             </Button>
           )}
+          <ThemeToggle />
           <Button
             variant="outline"
             size="sm"
@@ -96,7 +98,7 @@ export function Header({ chatButton }: HeaderProps) {
                 <Button asChild variant="ghost" className="justify-start gap-2" onClick={closeMobile}>
                   <Link to="/">
                     <Home className="h-4 w-4" />
-                    {lang === "es" ? "Inicio" : "Home"}
+                    {tr.home}
                   </Link>
                 </Button>
                 {user ? (
@@ -104,7 +106,7 @@ export function Header({ chatButton }: HeaderProps) {
                     <Button asChild variant="ghost" className="justify-start gap-2" onClick={closeMobile}>
                       <Link to="/dashboard">
                         <LayoutDashboard className="h-4 w-4" />
-                        {lang === "es" ? "Panel" : "Dashboard"}
+                        {tr.nav_dashboard}
                       </Link>
                     </Button>
                     <Button
@@ -113,14 +115,14 @@ export function Header({ chatButton }: HeaderProps) {
                       onClick={async () => { closeMobile(); await signOut(); navigate("/"); }}
                     >
                       <LogOut className="h-4 w-4" />
-                      {lang === "es" ? "Salir" : "Sign out"}
+                      {tr.sign_out}
                     </Button>
                   </>
                 ) : (
                   <Button asChild variant="ghost" className="justify-start gap-2" onClick={closeMobile}>
                     <Link to="/login">
                       <LogIn className="h-4 w-4" />
-                      {lang === "es" ? "Ingresar" : "Sign in"}
+                      {tr.sign_in}
                     </Link>
                   </Button>
                 )}

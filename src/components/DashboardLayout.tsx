@@ -19,13 +19,15 @@ import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLang } from "@/contexts/LangContext";
-
-const items = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Projects", url: "/projects", icon: FolderKanban },
-];
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 function AppSidebar() {
+  const { tr } = useLang();
+  const items = [
+    { titleKey: "nav_dashboard" as const, url: "/dashboard", icon: LayoutDashboard },
+    { titleKey: "nav_projects" as const, url: "/projects", icon: FolderKanban },
+  ];
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -40,12 +42,12 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+          <SidebarGroupLabel>{tr.nav_workspace}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
+                  <SidebarMenuButton asChild tooltip={tr[item.titleKey]}>
                     <NavLink
                       to={item.url}
                       end={item.url === "/dashboard"}
@@ -53,7 +55,7 @@ function AppSidebar() {
                       activeClassName="bg-muted text-primary font-medium"
                     >
                       <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                      <span>{tr[item.titleKey]}</span>
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -63,14 +65,14 @@ function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Tools</SidebarGroupLabel>
+          <SidebarGroupLabel>{tr.nav_tools}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Evaluator">
-                  <NavLink to="/demo" className="hover:bg-muted/50" activeClassName="bg-muted text-primary font-medium">
+                <SidebarMenuButton asChild tooltip={tr.nav_evaluator}>
+                  <NavLink to="/dashboard/evaluator" className="hover:bg-muted/50" activeClassName="bg-muted text-primary font-medium">
                     <Sparkles className="h-4 w-4" />
-                    <span>Evaluator</span>
+                    <span>{tr.nav_evaluator}</span>
                   </NavLink>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -87,6 +89,7 @@ function AppSidebar() {
 
 function UserBlock() {
   const { user, signOut } = useAuth();
+  const { tr } = useLang();
   const navigate = useNavigate();
   const email = (user?.signInDetails?.loginId as string | undefined) ?? user?.username ?? "";
 
@@ -105,17 +108,25 @@ function UserBlock() {
         }}
       >
         <LogOut className="h-4 w-4" />
-        <span className="group-data-[collapsible=icon]:hidden">Sign out</span>
+        <span className="group-data-[collapsible=icon]:hidden">{tr.sign_out}</span>
       </Button>
     </div>
   );
 }
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
-  const { lang, setLang } = useLang();
+  const { lang, setLang, tr } = useLang();
   const location = useLocation();
-  const title = items.find((i) => location.pathname === i.url || location.pathname.startsWith(i.url + "/"))?.title
-    ?? "Dashboard";
+
+  const titleMap: Record<string, string> = {
+    "/dashboard": tr.nav_dashboard,
+    "/dashboard/evaluator": tr.nav_evaluator,
+    "/projects": tr.nav_projects,
+    "/projects/new": tr.new_project,
+  };
+  const title =
+    titleMap[location.pathname] ??
+    (location.pathname.startsWith("/projects/") ? tr.nav_projects : tr.nav_dashboard);
 
   return (
     <SidebarProvider>
@@ -127,15 +138,18 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               <SidebarTrigger />
               <h1 className="text-sm font-semibold text-foreground truncate">{title}</h1>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setLang(lang === "es" ? "en" : "es")}
-              className="gap-2"
-            >
-              <Languages className="h-4 w-4" />
-              {lang === "es" ? "EN" : "ES"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLang(lang === "es" ? "en" : "es")}
+                className="gap-2"
+              >
+                <Languages className="h-4 w-4" />
+                {lang === "es" ? "EN" : "ES"}
+              </Button>
+            </div>
           </header>
           <main className="flex-1 overflow-auto">
             <div className="container max-w-6xl py-6 px-4 sm:px-6">{children}</div>
