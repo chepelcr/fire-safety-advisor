@@ -279,7 +279,13 @@ const Index = ({ embedded = false }: { embedded?: boolean } = {}) => {
           </div>
 
           {/* ── RIGHT COLUMN: chat — desktop only, sticky below header ── */}
-          <div className="no-print hidden lg:flex lg:w-[360px] lg:shrink-0 lg:flex-col lg:sticky lg:top-[4.5rem]" style={{ height: "calc(100dvh - 5.5rem)" }}>
+          <div
+            className={cn(
+              "no-print hidden lg:flex lg:w-[360px] lg:shrink-0 lg:flex-col lg:sticky",
+              embedded ? "lg:top-2" : "lg:top-[4.5rem]"
+            )}
+            style={{ height: embedded ? "calc(100dvh - 4.5rem)" : "calc(100dvh - 5.5rem)" }}
+          >
             <ChatPanel
               buildingType={building}
               usage={context}
