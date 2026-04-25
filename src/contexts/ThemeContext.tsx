@@ -2,7 +2,12 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 
 export type Theme = "light" | "dark";
 interface Ctx { theme: Theme; setTheme: (t: Theme) => void; toggle: () => void; }
-const ThemeCtx = createContext<Ctx | null>(null);
+const defaultCtx: Ctx = {
+  theme: "dark",
+  setTheme: () => {},
+  toggle: () => {},
+};
+const ThemeCtx = createContext<Ctx>(defaultCtx);
 
 const STORAGE_KEY = "firecode.theme";
 
@@ -29,7 +34,5 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 }
 
 export function useTheme() {
-  const c = useContext(ThemeCtx);
-  if (!c) throw new Error("useTheme outside provider");
-  return c;
+  return useContext(ThemeCtx);
 }
