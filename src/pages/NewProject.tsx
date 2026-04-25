@@ -2,6 +2,7 @@ import { FormEvent, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { useProjects } from "@/hooks/useProjects";
+import { useLang } from "@/contexts/LangContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +25,7 @@ function normalizeRisk(raw?: string): RiskLevel | undefined {
 export default function NewProject() {
   const navigate = useNavigate();
   const { create } = useProjects();
+  const { tr } = useLang();
 
   const [name, setName] = useState("");
   const [buildingType, setBuildingType] = useState<BuildingType>(BuildingType.comercial);
@@ -74,7 +76,7 @@ export default function NewProject() {
 
       navigate(`/projects/${project.id}`, { replace: true });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to create project");
+      setError(e instanceof Error ? e.message : tr.failed_create);
     } finally {
       setSubmitting(false);
     }
@@ -84,58 +86,58 @@ export default function NewProject() {
     <DashboardLayout>
       <div className="max-w-2xl space-y-4">
         <Button asChild variant="ghost" size="sm" className="gap-1 -ml-2">
-          <Link to="/projects"><ArrowLeft className="h-4 w-4" /> Back to projects</Link>
+          <Link to="/projects"><ArrowLeft className="h-4 w-4" /> {tr.back_to_projects}</Link>
         </Button>
 
         <Card>
           <CardHeader>
-            <CardTitle>New project</CardTitle>
-            <CardDescription>Save building data and run an evaluation.</CardDescription>
+            <CardTitle>{tr.new_project}</CardTitle>
+            <CardDescription>{tr.save_run_eval}</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="name">Project name *</Label>
+                <Label htmlFor="name">{tr.project_name} *</Label>
                 <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Building type *</Label>
+                  <Label>{tr.building_type} *</Label>
                   <Select value={String(buildingType)} onValueChange={(v) => setBuildingType(Number(v) as BuildingType)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={String(BuildingType.residencial)}>Residential</SelectItem>
-                      <SelectItem value={String(BuildingType.comercial)}>Commercial</SelectItem>
-                      <SelectItem value={String(BuildingType.industrial)}>Industrial</SelectItem>
+                      <SelectItem value={String(BuildingType.residencial)}>{tr.bt_residential}</SelectItem>
+                      <SelectItem value={String(BuildingType.comercial)}>{tr.bt_commercial}</SelectItem>
+                      <SelectItem value={String(BuildingType.industrial)}>{tr.bt_industrial}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="usage">Usage *</Label>
-                  <Input id="usage" required placeholder="e.g. restaurant, office" value={usage} onChange={(e) => setUsage(e.target.value)} />
+                  <Label htmlFor="usage">{tr.usage_label} *</Label>
+                  <Input id="usage" required value={usage} onChange={(e) => setUsage(e.target.value)} />
                 </div>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="area">Area (m²) *</Label>
+                  <Label htmlFor="area">{tr.area} *</Label>
                   <Input id="area" type="number" min={1} required value={area} onChange={(e) => setArea(Number(e.target.value))} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="floors">Floors</Label>
+                  <Label htmlFor="floors">{tr.floors}</Label>
                   <Input id="floors" type="number" min={0} value={floors} onChange={(e) => setFloors(e.target.value === "" ? "" : Number(e.target.value))} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="occupants">Occupants</Label>
+                  <Label htmlFor="occupants">{tr.occupants}</Label>
                   <Input id="occupants" type="number" min={0} value={occupants} onChange={(e) => setOccupants(e.target.value === "" ? "" : Number(e.target.value))} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="ceiling">Ceiling height (m)</Label>
+                  <Label htmlFor="ceiling">{tr.ceilingHeight}</Label>
                   <Input id="ceiling" type="number" step="0.1" min={0} value={ceiling} onChange={(e) => setCeiling(e.target.value === "" ? "" : Number(e.target.value))} />
                 </div>
                 <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="volume">Volume (m³)</Label>
+                  <Label htmlFor="volume">{tr.volume}</Label>
                   <Input id="volume" type="number" min={0} value={volume} onChange={(e) => setVolume(e.target.value === "" ? "" : Number(e.target.value))} />
                 </div>
               </div>
@@ -143,10 +145,10 @@ export default function NewProject() {
               {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
 
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancel</Button>
+                <Button type="button" variant="outline" onClick={() => navigate(-1)}>{tr.cancel}</Button>
                 <Button type="submit" disabled={submitting}>
                   {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Create project
+                  {tr.create_project_btn}
                 </Button>
               </div>
             </form>
