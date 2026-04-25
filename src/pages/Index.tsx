@@ -108,29 +108,31 @@ const Index = ({ embedded = false }: { embedded?: boolean } = {}) => {
         Mobile:  flex-col, everything stacks, page scrolls normally.
         Desktop: flex-row, left col scrolls independently, right col (chat) is pinned.
       */}
-      <main className="container flex-1 py-4 px-4 flex flex-col gap-4">
+      <main className={cn("container flex-1 px-4 flex flex-col gap-4", embedded ? "py-2" : "py-4")}>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
 
           {/* ── LEFT COLUMN ── */}
           <div className="flex flex-col gap-4 lg:flex-1">
 
             {/* Title + badge */}
-            <section className="space-y-2">
+            <section className={cn(embedded ? "space-y-1" : "space-y-2")}>
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
                 <ShieldAlert className="h-3.5 w-3.5" /> NFPA · Costa Rica
               </div>
-              <h1 className="text-2xl font-bold leading-tight sm:text-3xl">
+              <h1 className={cn("font-bold leading-tight", embedded ? "text-lg sm:text-xl" : "text-2xl sm:text-3xl")}>
                 {lang === "es" ? (
                   <>Interprete normas <span className="text-primary">NFPA</span> en lenguaje práctico.</>
                 ) : (
                   <>Interpret <span className="text-primary">NFPA</span> standards in practical language.</>
                 )}
               </h1>
-              <p className="text-sm text-muted-foreground max-w-xl">
-                {lang === "es"
-                  ? "Seleccione el tipo de edificio, ingrese el uso y obtenga los sistemas requeridos clasificados por categoría."
-                  : "Select the building type, enter the occupancy and get required systems classified by category."}
-              </p>
+              {!embedded && (
+                <p className="text-sm text-muted-foreground max-w-xl">
+                  {lang === "es"
+                    ? "Seleccione el tipo de edificio, ingrese el uso y obtenga los sistemas requeridos clasificados por categoría."
+                    : "Select the building type, enter the occupancy and get required systems classified by category."}
+                </p>
+              )}
             </section>
 
             {/* Filters */}
@@ -277,7 +279,13 @@ const Index = ({ embedded = false }: { embedded?: boolean } = {}) => {
           </div>
 
           {/* ── RIGHT COLUMN: chat — desktop only, sticky below header ── */}
-          <div className="no-print hidden lg:flex lg:w-[360px] lg:shrink-0 lg:flex-col lg:sticky lg:top-[4.5rem]" style={{ height: "calc(100dvh - 5.5rem)" }}>
+          <div
+            className={cn(
+              "no-print hidden lg:flex lg:w-[360px] lg:shrink-0 lg:flex-col lg:sticky",
+              embedded ? "lg:top-2" : "lg:top-[4.5rem]"
+            )}
+            style={{ height: embedded ? "calc(100dvh - 4.5rem)" : "calc(100dvh - 5.5rem)" }}
+          >
             <ChatPanel
               buildingType={building}
               usage={context}
