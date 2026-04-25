@@ -3,9 +3,12 @@ import { ArrowRight, ShieldCheck, Zap, FileText, BookOpen, MapPin, MessageSquare
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { useLang } from "@/contexts/LangContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Landing = () => {
   const { tr } = useLang();
+  const { user } = useAuth();
+  const demoHref = user ? "/dashboard/evaluator" : "/demo";
 
   const problems = [
     { icon: BookOpen, t: tr.problem_1_t, d: tr.problem_1_d },
