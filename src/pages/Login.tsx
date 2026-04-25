@@ -2,17 +2,20 @@ import { FormEvent, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Flame, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLang } from "@/contexts/LangContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type Mode = "signin" | "signup" | "confirm";
 
 export default function Login() {
   const { user, signIn, signUp, confirmSignUp, resendCode, loading: authLoading } = useAuth();
+  const { tr } = useLang();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? "/dashboard";
@@ -28,7 +31,7 @@ export default function Login() {
   if (!authLoading && user) return <Navigate to={from} replace />;
 
   const handleError = (e: unknown) => {
-    const msg = e instanceof Error ? e.message : "Something went wrong";
+    const msg = e instanceof Error ? e.message : tr.something_wrong;
     setError(msg);
   };
 
@@ -40,11 +43,7 @@ export default function Login() {
     try {
       await signIn(email.trim(), password);
       navigate(from, { replace: true });
-    } catch (e) {
-      handleError(e);
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (e) { handleError(e); } finally { setSubmitting(false); }
   };
 
   const onSignUp = async (e: FormEvent) => {
@@ -56,16 +55,12 @@ export default function Login() {
       const { needsConfirmation } = await signUp(email.trim(), password);
       if (needsConfirmation) {
         setMode("confirm");
-        setInfo("We sent a verification code to your email.");
+        setInfo(tr.code_sent);
       } else {
         await signIn(email.trim(), password);
         navigate(from, { replace: true });
       }
-    } catch (e) {
-      handleError(e);
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (e) { handleError(e); } finally { setSubmitting(false); }
   };
 
   const onConfirm = async (e: FormEvent) => {
@@ -80,13 +75,9 @@ export default function Login() {
         navigate(from, { replace: true });
       } else {
         setMode("signin");
-        setInfo("Email confirmed. Please sign in.");
+        setInfo(tr.email_confirmed);
       }
-    } catch (e) {
-      handleError(e);
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (e) { handleError(e); } finally { setSubmitting(false); }
   };
 
   const onResend = async () => {
@@ -94,14 +85,15 @@ export default function Login() {
     setInfo(null);
     try {
       await resendCode(email.trim());
-      setInfo("A new code has been sent.");
-    } catch (e) {
-      handleError(e);
-    }
+      setInfo(tr.new_code_sent);
+    } catch (e) { handleError(e); }
   };
 
   return (
-    <div className="min-h-screen grid place-items-center bg-background px-4 py-10">
+    <div className="min-h-screen grid place-items-center bg-background px-4 py-10 relative">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md">
         <Link to="/" className="flex items-center gap-3 justify-center mb-6">
           <div className="relative flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 border border-primary/30 glow-red">
@@ -116,13 +108,13 @@ export default function Login() {
           {mode === "confirm" ? (
             <form onSubmit={onConfirm} className="space-y-4">
               <div>
-                <h1 className="text-xl font-semibold">Confirm your email</h1>
+                <h1 className="text-xl font-semibold">{tr.confirm_email}</h1>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Enter the 6-digit code we sent to <span className="font-medium">{email}</span>.
+                  {tr.confirm_email_sub} <span className="font-medium">{email}</span>.
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="code">Verification code</Label>
+                <Label htmlFor="code">{tr.verification_code}</Label>
                 <Input
                   id="code"
                   value={code}
@@ -137,39 +129,39 @@ export default function Login() {
               {info && <Alert><AlertDescription>{info}</AlertDescription></Alert>}
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                Confirm
+                {tr.confirm}
               </Button>
               <div className="flex justify-between text-sm">
                 <button type="button" onClick={onResend} className="text-primary hover:underline">
-                  Resend code
+                  {tr.resend_code}
                 </button>
                 <button type="button" onClick={() => setMode("signin")} className="text-muted-foreground hover:underline">
-                  Back to sign in
+                  {tr.back_to_signin}
                 </button>
               </div>
             </form>
           ) : (
             <Tabs value={mode} onValueChange={(v) => { setMode(v as Mode); setError(null); setInfo(null); }}>
               <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="signin">Sign in</TabsTrigger>
-                <TabsTrigger value="signup">Sign up</TabsTrigger>
+                <TabsTrigger value="signin">{tr.sign_in}</TabsTrigger>
+                <TabsTrigger value="signup">{tr.sign_up}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin" className="mt-4">
                 <form onSubmit={onSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email-in">Email</Label>
+                    <Label htmlFor="email-in">{tr.email}</Label>
                     <Input id="email-in" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password-in">Password</Label>
+                    <Label htmlFor="password-in">{tr.password}</Label>
                     <Input id="password-in" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
                   </div>
                   {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
                   {info && <Alert><AlertDescription>{info}</AlertDescription></Alert>}
                   <Button type="submit" className="w-full" disabled={submitting}>
                     {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                    Sign in
+                    {tr.sign_in}
                   </Button>
                 </form>
               </TabsContent>
@@ -177,19 +169,19 @@ export default function Login() {
               <TabsContent value="signup" className="mt-4">
                 <form onSubmit={onSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="email-up">Email</Label>
+                    <Label htmlFor="email-up">{tr.email}</Label>
                     <Input id="email-up" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password-up">Password</Label>
+                    <Label htmlFor="password-up">{tr.password}</Label>
                     <Input id="password-up" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
-                    <p className="text-xs text-muted-foreground">At least 8 characters.</p>
+                    <p className="text-xs text-muted-foreground">{tr.min_chars}</p>
                   </div>
                   {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
                   {info && <Alert><AlertDescription>{info}</AlertDescription></Alert>}
                   <Button type="submit" className="w-full" disabled={submitting}>
                     {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                    Create account
+                    {tr.sign_up}
                   </Button>
                 </form>
               </TabsContent>
@@ -198,7 +190,7 @@ export default function Login() {
         </Card>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          <Link to="/" className="hover:text-foreground">← Back to home</Link>
+          <Link to="/" className="hover:text-foreground">{tr.back_home}</Link>
         </p>
       </div>
     </div>
